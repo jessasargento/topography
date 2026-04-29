@@ -5,3 +5,4 @@ mapclassify
 matplotlib
 numpy
 plotly
+streamlit-folium
