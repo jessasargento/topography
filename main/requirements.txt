@@ -4,3 +4,4 @@ folium
 mapclassify
 matplotlib
 numpy
+plotly
