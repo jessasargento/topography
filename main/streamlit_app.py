@@ -1,12 +1,10 @@
-import geopandas as gpd
-import folium
-import mapclassify
-from matplotlib import pyplot as plt
-import os
+# Python Program to calculate the square root
 
-# Build path relative to this script's location
-base_dir = os.path.dirname(__file__)
-file_path = os.path.join(base_dir, 'comarea', 'ComArea_ACS14.geojson')
+# Note: change this value for a different result
+num = 8 
 
-file = gpd.read_file(file_path)
-file.head()
+# To take the input from the user
+#num = float(input('Enter a number: '))
+
+num_sqrt = num ** 0.5
+print('The square root of %0.3f is %0.3f'%(num ,num_sqrt))
