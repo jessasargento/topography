@@ -1,20 +1,26 @@
-pip install streamlit-folium
-import folium
-from streamlit_folium import st_folium, folium_static
-m = folium.Map(location=[df.latitude.mean(), df.longitude.mean()], 
-                 zoom_start=3, control_scale=True)
+import plotly.graph_objects as go
 
-#Loop through each row in the dataframe
-for i,row in df.iterrows():
-    #Setup the content of the popup
-    iframe = folium.IFrame('Well Name:' + str(row["Well Name"]))
+fig = go.Figure(go.Scattermap(
+        lat=['45.5017'],
+        lon=['-73.5673'],
+        mode='markers',
+        marker=go.scattermap.Marker(
+            size=14
+        ),
+        text=['Montreal'],
+    ))
 
-    #Initialise the popup using the iframe
-    popup = folium.Popup(iframe, min_width=300, max_width=300)
+fig.update_layout(
+    hovermode='closest',
+    map=dict(
+        bearing=0,
+        center=go.layout.map.Center(
+            lat=45,
+            lon=-73
+        ),
+        pitch=0,
+        zoom=5
+    )
+)
 
-    #Add each row to the map
-    folium.Marker(location=[row['latitude'],row['longitude']],
-                  popup = popup, c=row['Well Name']).add_to(m)
-
-st_data = st_folium(m, width=700)
-folium_static(m, width=700)
+fig.show()
