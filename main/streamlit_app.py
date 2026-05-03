@@ -1,5 +1,6 @@
 import os
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import plotly.express as px
 import folium
@@ -386,16 +387,16 @@ with tab2:
                     f'float:left; margin-right:14px; margin-bottom:4px;">'
                     if has_poster else ""
                 )
-                st.markdown(f"""
-                    <div style="overflow:hidden; font-family:'DM Sans',sans-serif; font-size:0.9rem;">
-                        {poster_html}
-                        <b>Genre:</b> {film['genre']}<br>
-                        <b>Runtime:</b> {runtime_str}<br>
-                        <b>City:</b> {film['city']}{address_str}<br>
-                        {origin_pill(film['source'])}
-                    </div>
-                    <div style="clear:both;"></div>
-                """, unsafe_allow_html=True)
+                card_html = (
+                    f'<div style="overflow:hidden;font-family:DM Sans,sans-serif;font-size:14px;line-height:1.8;color:#1a1a2e;">' +
+                    poster_html +
+                    f'<b>Genre:</b> {film["genre"]}<br>' +
+                    f'<b>Runtime:</b> {runtime_str}<br>' +
+                    f'<b>City:</b> {film["city"]}{address_str}<br>' +
+                    origin_pill(film["source"]) +
+                    '</div><div style="clear:both;"></div>'
+                )
+                components.html(card_html, height=150 if has_poster else 95, scrolling=False)
 
         st.divider()
         st.markdown("#### Legend")
