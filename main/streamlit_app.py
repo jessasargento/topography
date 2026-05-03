@@ -379,31 +379,23 @@ with tab2:
             with st.expander(f"{emoji} {film['title']} ({film['year']})", expanded=False):
                 poster_url = str(film.get("poster_url", "") or "").strip()
                 has_poster = bool(poster_url) and poster_url.lower() not in ("nan", "none", "null")
-                if has_poster:
-                    # Poster + metadata side by side
-                    img_col, info_col = st.columns([1, 2])
-                    with img_col:
-                        st.image(poster_url, use_container_width=True)
-                    with info_col:
-                        st.markdown("**Genre**")
-                        st.markdown(f"_{film['genre']}_")
-                        st.markdown("**Runtime**")
-                        st.markdown(f"_{int(film['runtime'])} min_" if pd.notna(film['runtime']) else "_—_")
-                        st.markdown(f"**City:** {film['city']}")
-                        if film["address"]:
-                            st.markdown(f"**Address:** {film['address']}")
-                        st.markdown(origin_pill(film["source"]), unsafe_allow_html=True)
-                else:  # has_poster is False
-                    # No poster — fall back to plain metadata layout
-                    meta_cols = st.columns(2)
-                    meta_cols[0].markdown("**Genre**")
-                    meta_cols[0].markdown(f"_{film['genre']}_")
-                    meta_cols[1].markdown("**Runtime**")
-                    meta_cols[1].markdown(f"_{int(film['runtime'])} min_" if pd.notna(film['runtime']) else "_—_")
-                    st.markdown(f"**City:** {film['city']}")
-                    if film["address"]:
-                        st.markdown(f"**Address:** {film['address']}")
-                    st.markdown(origin_pill(film["source"]), unsafe_allow_html=True)
+                runtime_str = f"{int(film['runtime'])} min" if pd.notna(film.get("runtime")) else "—"
+                address_str = f"<br><b>Address:</b> {film['address']}" if film.get("address") else ""
+                poster_html = (
+                    f'<img src="{poster_url}" style="width:90px; border-radius:6px; '
+                    f'float:left; margin-right:14px; margin-bottom:4px;">'
+                    if has_poster else ""
+                )
+                st.markdown(f"""
+                    <div style="overflow:hidden; font-family:'DM Sans',sans-serif; font-size:0.9rem;">
+                        {poster_html}
+                        <b>Genre:</b> {film['genre']}<br>
+                        <b>Runtime:</b> {runtime_str}<br>
+                        <b>City:</b> {film['city']}{address_str}<br>
+                        {origin_pill(film['source'])}
+                    </div>
+                    <div style="clear:both;"></div>
+                """, unsafe_allow_html=True)
 
         st.divider()
         st.markdown("#### Legend")
