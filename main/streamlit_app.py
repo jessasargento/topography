@@ -53,18 +53,20 @@ def parse_csv(csv_path: str, source_label: str) -> pd.DataFrame:
             if pd.isna(city) or pd.isna(lat) or (lon is None or pd.isna(lon)):
                 continue
 
+            poster = row.get("poster_url", "")
             records.append({
-                "source":  source_label,
-                "title":   row["title"],
-                "year":    int(row["year_of_release"]),
-                "genre":   row["film_genre"],
-                "runtime": row.get("runtime"),
-                "origin":  row.get("country_of_origin"),
-                "city":    str(city).strip(),
-                "country": str(country).strip() if pd.notna(country) else "",
-                "address": str(addr).strip() if pd.notna(addr) else "",
-                "lat":     float(lat),
-                "lon":     float(lon),
+                "source":     source_label,
+                "title":      row["title"],
+                "year":       int(row["year_of_release"]),
+                "genre":      row["film_genre"],
+                "runtime":    row.get("runtime"),
+                "origin":     row.get("country_of_origin"),
+                "city":       str(city).strip(),
+                "country":    str(country).strip() if pd.notna(country) else "",
+                "address":    str(addr).strip() if pd.notna(addr) else "",
+                "lat":        float(lat),
+                "lon":        float(lon),
+                "poster_url": str(poster).strip() if pd.notna(poster) else "",
             })
     return pd.DataFrame(records)
 
