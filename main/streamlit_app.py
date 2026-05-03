@@ -103,7 +103,8 @@ def build_cities(long_df: pd.DataFrame) -> pd.DataFrame:
 # ── Load both CSVs (cached) ───────────────────────────────────────────────────
 @st.cache_data
 def load_all():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.getcwd()
+    st.write("DEBUG posters dir:", os.path.join(base_dir, "posters"), "| exists:", os.path.isdir(os.path.join(base_dir, "posters")))
 
     ph_path = os.path.join(base_dir, "ph_romance.csv")
     us_path = os.path.join(base_dir, "us_romance.csv")
