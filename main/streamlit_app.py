@@ -1,4 +1,5 @@
 import os
+import re
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -33,7 +34,19 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 LON_COLS = {1: "Longitude_1", 2: "Longitude_2", 3: "Longitude_3",
             4: "Longitude_5", 5: None}
 
-def parse_csv(csv_path: str, source_label: str) -> pd.DataFrame:
+
+def safe_filename(title: str) -> str:
+    """Match the filename logic used in download_posters.py."""
+    name = re.sub(r'[^\w\s-]', '', title).strip()
+    name = re.sub(r'[\s]+', '_', name)
+    return name[:80] + ".jpg"
+
+def local_poster_path(title: str, base_dir: str) -> str:
+    """Return the local poster path if it exists, else empty string."""
+    path = os.path.join(base_dir, "posters", safe_filename(title))
+    return path if os.path.exists(path) else ""
+
+def parse_csv(csv_path: str, source_label: str, base_dir: str = "") -> pd.DataFrame:
     """
     Read one wide-format CSV and return a normalised long DataFrame.
     source_label ('Filipino' / 'US') is stored so datasets can be
@@ -53,7 +66,7 @@ def parse_csv(csv_path: str, source_label: str) -> pd.DataFrame:
             if pd.isna(city) or pd.isna(lat) or (lon is None or pd.isna(lon)):
                 continue
 
-            poster = row.get("poster_url", "")
+            local = local_poster_path(row["title"], base_dir) if base_dir else ""
             records.append({
                 "source":     source_label,
                 "title":      row["title"],
@@ -66,7 +79,7 @@ def parse_csv(csv_path: str, source_label: str) -> pd.DataFrame:
                 "address":    str(addr).strip() if pd.notna(addr) else "",
                 "lat":        float(lat),
                 "lon":        float(lon),
-                "poster_url": str(poster).strip() if pd.notna(poster) else "",
+                "poster_url": local,
             })
     return pd.DataFrame(records)
 
@@ -95,8 +108,8 @@ def load_all():
     ph_path = os.path.join(base_dir, "ph_romance.csv")
     us_path = os.path.join(base_dir, "us_romance.csv")
 
-    ph_long = parse_csv(ph_path, "Filipino") if os.path.exists(ph_path) else pd.DataFrame()
-    us_long = parse_csv(us_path, "US")       if os.path.exists(us_path) else pd.DataFrame()
+    ph_long = parse_csv(ph_path, "Filipino", base_dir) if os.path.exists(ph_path) else pd.DataFrame()
+    us_long = parse_csv(us_path, "US", base_dir)       if os.path.exists(us_path) else pd.DataFrame()
     all_long = pd.concat([ph_long, us_long], ignore_index=True)
 
     return {
@@ -372,8 +385,7 @@ with tab2:
             emoji = "🔴" if film["year"] >= 2020 else "🟠" if film["year"] >= 2010 else "🟣"
             with st.expander(f"{emoji} {film['title']} ({film['year']})", expanded=False):
                 poster_url = str(film.get("poster_url", "") or "").strip()
-                has_poster = poster_url and poster_url.lower() not in ("nan", "none", "null", "")
-                if has_poster:
+                if poster_url:
                     # Poster + metadata side by side
                     img_col, info_col = st.columns([1, 2])
                     with img_col:
