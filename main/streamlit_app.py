@@ -1,4 +1,5 @@
 import os
+import re
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -32,6 +33,12 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 # Column name mapping — location 4 has a typo: lon column is "Longitude_5"
 LON_COLS = {1: "Longitude_1", 2: "Longitude_2", 3: "Longitude_3",
             4: "Longitude_5", 5: None}
+
+
+def safe_filename(title: str) -> str:
+    name = re.sub(r'[^\w\s-]', '', title).strip()
+    name = re.sub(r'[\s]+', '_', name)
+    return name[:80] + ".jpg"
 
 def parse_csv(csv_path: str, source_label: str) -> pd.DataFrame:
     """
@@ -371,12 +378,12 @@ with tab2:
         for _, film in country_films.iterrows():
             emoji = "🔴" if film["year"] >= 2020 else "🟠" if film["year"] >= 2010 else "🟣"
             with st.expander(f"{emoji} {film['title']} ({film['year']})", expanded=False):
-                poster_url = film.get("poster_url", "")
-                if pd.notna(poster_url) and str(poster_url).strip():
+                poster_path = os.path.join("posters", safe_filename(film["title"]))
+                if os.path.exists(poster_path):
                     # Poster + metadata side by side
                     img_col, info_col = st.columns([1, 2])
                     with img_col:
-                        st.image(str(poster_url).strip(), use_container_width=True)
+                        st.image(poster_path, use_container_width=True)
                     with info_col:
                         st.markdown("**Genre**")
                         st.markdown(f"_{film['genre']}_")
