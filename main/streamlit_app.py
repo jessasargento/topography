@@ -381,7 +381,7 @@ with tab2:
                         st.markdown("**Genre**")
                         st.markdown(f"_{film['genre']}_")
                         st.markdown("**Runtime**")
-                        st.markdown(f"_{film['runtime']} min_" if pd.notna(film['runtime']) else "_—_")
+                        st.markdown(f"_{int(film['runtime'])} min_" if pd.notna(film['runtime']) else "_—_")
                         st.markdown(f"**City:** {film['city']}")
                         if film["address"]:
                             st.markdown(f"**Address:** {film['address']}")
@@ -392,7 +392,7 @@ with tab2:
                     meta_cols[0].markdown("**Genre**")
                     meta_cols[0].markdown(f"_{film['genre']}_")
                     meta_cols[1].markdown("**Runtime**")
-                    meta_cols[1].markdown(f"_{film['runtime']} min_" if pd.notna(film['runtime']) else "_—_")
+                    meta_cols[1].markdown(f"_{int(film['runtime'])} min_" if pd.notna(film['runtime']) else "_—_")
                     st.markdown(f"**City:** {film['city']}")
                     if film["address"]:
                         st.markdown(f"**Address:** {film['address']}")
