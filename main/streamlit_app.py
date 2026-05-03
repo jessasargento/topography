@@ -17,8 +17,8 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
-h1, h2, h3 { font-family: 'Playfair Display', serif; }
-.main-title { font-family: 'Playfair Display', serif; font-size: 2.6rem; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
+h1, h2, h3 { font-family: 'Poppins', serif; }
+.main-title { font-family: 'Poppins', serif; font-size: 2.6rem; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
 .subtitle { font-family: 'DM Sans', sans-serif; font-size: 1rem; color: #6b6b8d; font-weight: 300; margin-top: 0.3rem; margin-bottom: 1.5rem; }
 .pill     { display: inline-block; background: #f0eeff; color: #5b4fcf; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 500; margin: 2px; }
 .pill-ph  { display: inline-block; background: #fff0f0; color: #c1506a; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 500; margin: 2px; }
