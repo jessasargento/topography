@@ -1,6 +1,5 @@
 import os
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 import plotly.express as px
 import folium
@@ -380,23 +379,31 @@ with tab2:
             with st.expander(f"{emoji} {film['title']} ({film['year']})", expanded=False):
                 poster_url = str(film.get("poster_url", "") or "").strip()
                 has_poster = bool(poster_url) and poster_url.lower() not in ("nan", "none", "null")
-                runtime_str = f"{int(film['runtime'])} min" if pd.notna(film.get("runtime")) else "—"
-                address_str = f"<br><b>Address:</b> {film['address']}" if film.get("address") else ""
-                poster_html = (
-                    f'<img src="{poster_url}" style="width:90px; border-radius:6px; '
-                    f'float:left; margin-right:14px; margin-bottom:4px;">'
-                    if has_poster else ""
-                )
-                card_html = (
-                    f'<div style="overflow:hidden;font-family:DM Sans,sans-serif;font-size:14px;line-height:1.8;color:#1a1a2e;">' +
-                    poster_html +
-                    f'<b>Genre:</b> {film["genre"]}<br>' +
-                    f'<b>Runtime:</b> {runtime_str}<br>' +
-                    f'<b>City:</b> {film["city"]}{address_str}<br>' +
-                    origin_pill(film["source"]) +
-                    '</div><div style="clear:both;"></div>'
-                )
-                components.html(card_html, height=150 if has_poster else 95, scrolling=False)
+                if has_poster:
+                    # Poster + metadata side by side
+                    img_col, info_col = st.columns([1, 2])
+                    with img_col:
+                        st.image(poster_url, use_container_width=True)
+                    with info_col:
+                        st.markdown("**Genre**")
+                        st.markdown(f"_{film['genre']}_")
+                        st.markdown("**Runtime**")
+                        st.markdown(f"_{int(film['runtime'])} min_" if pd.notna(film['runtime']) else "_—_")
+                        st.markdown(f"**City:** {film['city']}")
+                        if film["address"]:
+                            st.markdown(f"**Address:** {film['address']}")
+                        st.markdown(origin_pill(film["source"]), unsafe_allow_html=True)
+                else:  # has_poster is False
+                    # No poster — fall back to plain metadata layout
+                    meta_cols = st.columns(2)
+                    meta_cols[0].markdown("**Genre**")
+                    meta_cols[0].markdown(f"_{film['genre']}_")
+                    meta_cols[1].markdown("**Runtime**")
+                    meta_cols[1].markdown(f"_{int(film['runtime'])} min_" if pd.notna(film['runtime']) else "_—_")
+                    st.markdown(f"**City:** {film['city']}")
+                    if film["address"]:
+                        st.markdown(f"**Address:** {film['address']}")
+                    st.markdown(origin_pill(film["source"]), unsafe_allow_html=True)
 
         st.divider()
         st.markdown("#### Legend")
