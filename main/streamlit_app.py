@@ -133,7 +133,7 @@ if long_df.empty:
     st.stop()
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tab1, tab2 = st.tabs(["🌍  World Overview", "📍  City Deep-Dive"])
+tab1, tab2 = st.tabs(["🌍  World Overview", "🗺️  Country Deep-Dive"])
 
 # ── TAB 1: World Overview ─────────────────────────────────────────────────────
 with tab1:
@@ -227,68 +227,97 @@ with tab1:
     )
     st.dataframe(display_df, use_container_width=True, hide_index=True)
 
-# ── TAB 2: City Deep-Dive ─────────────────────────────────────────────────────
+# ── TAB 2: Country Deep-Dive ──────────────────────────────────────────────────
 with tab2:
-    city_options = (
-        cities_df[["city", "country", "num_films"]]
-        .apply(
-            lambda r: (
-                f"{r['city']} ({r['country']}) — "
-                f"{r['num_films']} film{'s' if r['num_films'] > 1 else ''}"
-            ),
-            axis=1,
+    # Build sorted country list: most-filmed first
+    country_stats = (
+        long_df
+        .groupby("country", as_index=False)
+        .agg(
+            num_films=("title",  "nunique"),
+            num_cities=("city",  "nunique"),
+            films    =("title",  lambda x: sorted(x.unique())),
         )
-        .tolist()
+        .sort_values("num_films", ascending=False)
+        .reset_index(drop=True)
     )
-    city_keys = cities_df[["city", "country"]].apply(
-        lambda r: (r["city"], r["country"]), axis=1
+
+    country_options = country_stats.apply(
+        lambda r: (
+            f"{r['country']} — "
+            f"{r['num_films']} film{'s' if r['num_films'] > 1 else ''}, "
+            f"{r['num_cities']} cit{'ies' if r['num_cities'] > 1 else 'y'}"
+        ),
+        axis=1,
     ).tolist()
 
-    st.markdown('<div class="section-header">Explore a City</div>', unsafe_allow_html=True)
-    selected_label    = st.selectbox("Choose a city to explore:", options=city_options, index=0)
-    sel_idx           = city_options.index(selected_label)
-    sel_city, sel_country = city_keys[sel_idx]
+    st.markdown('<div class="section-header">Explore a Country</div>', unsafe_allow_html=True)
+    selected_country_label = st.selectbox(
+        "Choose a country to explore:",
+        options=country_options,
+        index=0,
+    )
 
-    city_films = (
-        long_df[
-            (long_df["city"] == sel_city) & (long_df["country"] == sel_country)
-        ]
+    sel_country = country_stats.iloc[country_options.index(selected_country_label)]["country"]
+
+    # All data for the selected country
+    country_long  = long_df[long_df["country"] == sel_country]
+    country_cities = (
+        country_long
+        .groupby(["city", "lat", "lon"], as_index=False)
+        .agg(
+            num_films=("title",  "nunique"),
+            film_list=("title",  lambda x: list(x.unique())),
+            src_list =("source", lambda x: list(x.unique())),
+        )
+        .sort_values("num_films", ascending=False)
+    )
+    country_films = (
+        country_long
         .drop_duplicates("title")
         .sort_values("year")
     )
-    city_meta = cities_df[
-        (cities_df["city"] == sel_city) & (cities_df["country"] == sel_country)
-    ].iloc[0]
+
+    num_films_country  = country_films["title"].nunique()
+    num_cities_country = country_cities["city"].nunique()
 
     st.markdown(
-        f'<p class="caption-text">Showing all films set (at least partially) in '
-        f'<b>{sel_city}</b>, {sel_country}. Click a marker for address details.</p>',
+        f'<p class="caption-text">'
+        f'<b>{sel_country}</b> — {num_films_country} film{"s" if num_films_country > 1 else ""} '
+        f'across {num_cities_country} cit{"ies" if num_cities_country > 1 else "y"}. '
+        f'Each bubble is a city; click for film details.</p>',
         unsafe_allow_html=True,
     )
 
     col_map, col_detail = st.columns([3, 2])
 
     with col_map:
-        m = folium.Map(
-            location=[city_meta["lat"], city_meta["lon"]],
-            zoom_start=11,
-            tiles="CartoDB positron",
-        )
+        # Auto-centre & zoom to fit all cities in this country
+        avg_lat = country_cities["lat"].mean()
+        avg_lon = country_cities["lon"].mean()
+        lat_range = country_cities["lat"].max() - country_cities["lat"].min()
+        lon_range = country_cities["lon"].max() - country_cities["lon"].min()
+        span = max(lat_range, lon_range)
+        if span < 0.5:
+            zoom = 11
+        elif span < 2:
+            zoom = 8
+        elif span < 5:
+            zoom = 6
+        elif span < 15:
+            zoom = 5
+        else:
+            zoom = 4
 
-        addr_groups = (
-            long_df[
-                (long_df["city"] == sel_city) & (long_df["country"] == sel_country)
-            ]
-            .groupby(["lat", "lon", "address"], as_index=False)
-            .agg(
-                film_list=("title",  lambda x: list(x.unique())),
-                src_list =("source", lambda x: list(x.unique())),
-            )
+        m = folium.Map(
+            location=[avg_lat, avg_lon],
+            zoom_start=zoom,
+            tiles="CartoDB positron",
         )
 
         marker_colors = ["#e63946", "#5b4fcf", "#2a9d8f", "#e9c46a", "#f4a0b0"]
 
-        for i, (_, loc) in enumerate(addr_groups.iterrows()):
+        for i, (_, loc) in enumerate(country_cities.iterrows()):
             color      = marker_colors[i % len(marker_colors)]
             films_html = "".join(
                 f'<span style="font-size:10px; color:#5b4fcf;">• {f}</span><br>'
@@ -302,39 +331,52 @@ with tab2:
             )
             popup_html = f"""
             <div style="font-family:'DM Sans',sans-serif; width:210px;">
-                <b style="font-size:12px; color:#1a1a2e;">{loc['address'] or sel_city}</b><br>
-                <span style="font-size:11px; color:#e63946;">🎬 {len(loc['film_list'])} film(s)</span>
+                <b style="font-size:13px; color:#1a1a2e;">📍 {loc['city']}</b><br>
+                <span style="font-size:11px; color:#e63946;">🎬 {loc['num_films']} film(s)</span>
                 &nbsp;{badges}<br><br>
                 <b style="font-size:11px;">Films:</b><br>{films_html}
             </div>
             """
             folium.CircleMarker(
                 location=[loc["lat"], loc["lon"]],
-                radius=10 + len(loc["film_list"]) * 3,
-                color=color, fill=True, fill_color=color, fill_opacity=0.75,
-                tooltip=f"{loc['address'] or sel_city} — {len(loc['film_list'])} film(s)",
+                radius=10 + loc["num_films"] * 4,
+                color=color, fill=True, fill_color=color, fill_opacity=0.78,
+                tooltip=f"{loc['city']} — {loc['num_films']} film(s)",
                 popup=folium.Popup(popup_html, max_width=230),
+            ).add_to(m)
+
+            # City name label
+            folium.map.Marker(
+                [loc["lat"], loc["lon"]],
+                icon=folium.DivIcon(
+                    html=f'<div style="font-size:10px; font-family:DM Sans,sans-serif; '
+                         f'font-weight:600; color:#1a1a2e; white-space:nowrap; '
+                         f'margin-top:-18px; margin-left:16px;">{loc["city"]}</div>',
+                    icon_size=(160, 20),
+                    icon_anchor=(0, 0),
+                )
             ).add_to(m)
 
         st_folium(m, width="100%", height=480)
 
     with col_detail:
-        st.markdown(f"#### 🎬 Films set in {sel_city}")
+        st.markdown(f"#### 🎬 Films set in {sel_country}")
 
         def origin_pill(src):
             cls = "pill-ph" if src == "Filipino" else "pill-us" if src == "US" else "pill"
             return f"<span class='{cls}'>{src}</span>"
 
-        for _, film in city_films.iterrows():
+        for _, film in country_films.iterrows():
             emoji = "🔴" if film["year"] >= 2020 else "🟠" if film["year"] >= 2010 else "🟣"
-            with st.expander(f"{emoji} {film['title']} ({film['year']})", expanded=True):
+            with st.expander(f"{emoji} {film['title']} ({film['year']})", expanded=False):
                 meta_cols = st.columns(2)
                 meta_cols[0].markdown("**Genre**")
                 meta_cols[0].markdown(f"_{film['genre']}_")
                 meta_cols[1].markdown("**Runtime**")
                 meta_cols[1].markdown(f"_{film['runtime']} min_" if pd.notna(film['runtime']) else "_—_")
+                st.markdown(f"**City:** {film['city']}")
                 if film["address"]:
-                    st.markdown(f"**Location:** {film['address']}")
+                    st.markdown(f"**Address:** {film['address']}")
                 st.markdown(origin_pill(film["source"]), unsafe_allow_html=True)
 
         st.divider()
@@ -351,4 +393,4 @@ with tab2:
                 'origin badges shown on each film card.',
                 unsafe_allow_html=True,
             )
-        st.caption("Bubble size scales with number of film appearances at that location.")
+        st.caption("Bubble size scales with number of film appearances in that city.")
