@@ -23,7 +23,7 @@ h1, h2, h3 { font-family: 'Poppins', serif; }
 .pill     { display: inline-block; background: #f0eeff; color: #5b4fcf; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 500; margin: 2px; }
 .pill-ph  { display: inline-block; background: #fff0f0; color: #c1506a; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 500; margin: 2px; }
 .pill-us  { display: inline-block; background: #f0f4ff; color: #3a5fcf; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 500; margin: 2px; }
-.section-header { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: #1a1a2e; border-left: 4px solid #e63946; padding-left: 12px; margin-bottom: 0.5rem; }
+.section-header { font-family: 'Poppins', serif; font-size: 1.5rem; font-weight: 700; color: #1a1a2e; border-left: 4px solid #e63946; padding-left: 12px; margin-bottom: 0.5rem; }
 .caption-text { font-size: 0.82rem; color: #888; font-style: italic; }
 </style>
 """, unsafe_allow_html=True)
