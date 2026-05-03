@@ -17,13 +17,13 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
-h1, h2, h3 { font-family: 'Arial', serif; }
-.main-title { font-family: 'Arial', serif; font-size: 2.6rem; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
+h1, h2, h3 { font-family: 'Playfair Display', serif; }
+.main-title { font-family: 'Playfair Display', serif; font-size: 2.6rem; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
 .subtitle { font-family: 'DM Sans', sans-serif; font-size: 1rem; color: #6b6b8d; font-weight: 300; margin-top: 0.3rem; margin-bottom: 1.5rem; }
 .pill     { display: inline-block; background: #f0eeff; color: #5b4fcf; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 500; margin: 2px; }
 .pill-ph  { display: inline-block; background: #fff0f0; color: #c1506a; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 500; margin: 2px; }
 .pill-us  { display: inline-block; background: #f0f4ff; color: #3a5fcf; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 500; margin: 2px; }
-.section-header { font-family: 'Arial', serif; font-size: 1.5rem; font-weight: 700; color: #1a1a2e; border-left: 4px solid #e63946; padding-left: 12px; margin-bottom: 0.5rem; }
+.section-header { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: #1a1a2e; border-left: 4px solid #e63946; padding-left: 12px; margin-bottom: 0.5rem; }
 .caption-text { font-size: 0.82rem; color: #888; font-style: italic; }
 </style>
 """, unsafe_allow_html=True)
@@ -369,15 +369,32 @@ with tab2:
         for _, film in country_films.iterrows():
             emoji = "🔴" if film["year"] >= 2020 else "🟠" if film["year"] >= 2010 else "🟣"
             with st.expander(f"{emoji} {film['title']} ({film['year']})", expanded=False):
-                meta_cols = st.columns(2)
-                meta_cols[0].markdown("**Genre**")
-                meta_cols[0].markdown(f"_{film['genre']}_")
-                meta_cols[1].markdown("**Runtime**")
-                meta_cols[1].markdown(f"_{film['runtime']} min_" if pd.notna(film['runtime']) else "_—_")
-                st.markdown(f"**City:** {film['city']}")
-                if film["address"]:
-                    st.markdown(f"**Address:** {film['address']}")
-                st.markdown(origin_pill(film["source"]), unsafe_allow_html=True)
+                poster_url = film.get("poster_url", "")
+                if pd.notna(poster_url) and str(poster_url).strip():
+                    # Poster + metadata side by side
+                    img_col, info_col = st.columns([1, 2])
+                    with img_col:
+                        st.image(str(poster_url).strip(), use_container_width=True)
+                    with info_col:
+                        st.markdown("**Genre**")
+                        st.markdown(f"_{film['genre']}_")
+                        st.markdown("**Runtime**")
+                        st.markdown(f"_{film['runtime']} min_" if pd.notna(film['runtime']) else "_—_")
+                        st.markdown(f"**City:** {film['city']}")
+                        if film["address"]:
+                            st.markdown(f"**Address:** {film['address']}")
+                        st.markdown(origin_pill(film["source"]), unsafe_allow_html=True)
+                else:
+                    # No poster — fall back to plain metadata layout
+                    meta_cols = st.columns(2)
+                    meta_cols[0].markdown("**Genre**")
+                    meta_cols[0].markdown(f"_{film['genre']}_")
+                    meta_cols[1].markdown("**Runtime**")
+                    meta_cols[1].markdown(f"_{film['runtime']} min_" if pd.notna(film['runtime']) else "_—_")
+                    st.markdown(f"**City:** {film['city']}")
+                    if film["address"]:
+                        st.markdown(f"**Address:** {film['address']}")
+                    st.markdown(origin_pill(film["source"]), unsafe_allow_html=True)
 
         st.divider()
         st.markdown("#### Legend")
