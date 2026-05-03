@@ -53,13 +53,7 @@ def parse_csv(csv_path: str, source_label: str) -> pd.DataFrame:
             if pd.isna(city) or pd.isna(lat) or (lon is None or pd.isna(lon)):
                 continue
 
-            # Robustly extract poster_url: treat NaN, None, "nan", "none", "" all as missing
-            poster_raw = row.get("poster_url", "")
-            if pd.isna(poster_raw) or str(poster_raw).strip().lower() in ("", "nan", "none", "null"):
-                poster = ""
-            else:
-                poster = str(poster_raw).strip()
-
+            poster = row.get("poster_url", "")
             records.append({
                 "source":     source_label,
                 "title":      row["title"],
@@ -72,7 +66,7 @@ def parse_csv(csv_path: str, source_label: str) -> pd.DataFrame:
                 "address":    str(addr).strip() if pd.notna(addr) else "",
                 "lat":        float(lat),
                 "lon":        float(lon),
-                "poster_url": poster,
+                "poster_url": str(poster).strip() if pd.notna(poster) else "",
             })
     return pd.DataFrame(records)
 
@@ -378,7 +372,7 @@ with tab2:
             emoji = "🔴" if film["year"] >= 2020 else "🟠" if film["year"] >= 2010 else "🟣"
             with st.expander(f"{emoji} {film['title']} ({film['year']})", expanded=False):
                 poster_url = str(film.get("poster_url", "") or "").strip()
-                has_poster = bool(poster_url) and poster_url.lower() not in ("nan", "none", "null")
+                has_poster = poster_url and poster_url.lower() not in ("nan", "none", "null", "")
                 if has_poster:
                     # Poster + metadata side by side
                     img_col, info_col = st.columns([1, 2])
@@ -393,7 +387,7 @@ with tab2:
                         if film["address"]:
                             st.markdown(f"**Address:** {film['address']}")
                         st.markdown(origin_pill(film["source"]), unsafe_allow_html=True)
-                else:  # has_poster is False
+                else:
                     # No poster — fall back to plain metadata layout
                     meta_cols = st.columns(2)
                     meta_cols[0].markdown("**Genre**")
