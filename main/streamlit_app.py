@@ -59,7 +59,7 @@ def load_data():
 
             records.append({
                 "title":   row["title"],
-                "year":    row["year_of_release"],
+                "year":   int(row["year_of_release"])
                 "genre":   row["film_genre"],
                 "runtime": row.get("runtime"),
                 "origin":  row.get("country_of_origin"),
