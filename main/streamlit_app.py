@@ -192,7 +192,7 @@ with tab1:
             "years":     "Year(s)",
             "sources":   "Origin",
         },
-        map_style="carto-positron",
+        map_style="open-street-map",
         zoom=1.5,
         center={"lat": 20.0, "lon": 10.0},
         height=560,
@@ -321,7 +321,7 @@ with tab2:
         m = folium.Map(
             location=[avg_lat, avg_lon],
             zoom_start=zoom,
-            tiles="CartoDB positron",
+            tiles="OpenStreetMap",
         )
 
         marker_colors = ["#e63946", "#5b4fcf", "#2a9d8f", "#e9c46a", "#f4a0b0"]
