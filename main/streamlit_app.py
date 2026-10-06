@@ -171,7 +171,7 @@ with tab1:
             ],
         )
 
-    fig = px.scatter_mapbox(
+    fig = px.scatter_map(
         cities_df,
         lat="lat",
         lon="lon",
@@ -192,7 +192,7 @@ with tab1:
             "years":     "Year(s)",
             "sources":   "Origin",
         },
-        mapbox_style="carto-positron",
+        map_style="carto-positron",
         zoom=1.5,
         center={"lat": 20.0, "lon": 10.0},
         height=560,
